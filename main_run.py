@@ -1,5 +1,7 @@
 import os
+import base64 as b64
 import openai as OAI
+from flask_cors import CORS
 from dotenv import load_dotenv
 from os.path import join, dirname
 from flask import Flask, jsonify, request
@@ -33,6 +35,8 @@ def generate_response_from_transcript(transcript):
 
 flask_app = Flask(__name__)
 
+cors = CORS(flask_app, resources={r"/*": {"origins": "*"}})
+
 @flask_app.route('/')
 def home():
     return 'Welcome to Audio Transcribed Replier - ATR', 200
@@ -42,8 +46,10 @@ def resolveWithGPT():
     params = request.get_json()
     print('params:', params)
     query = params['query']
+    resBytes = generate_response_from_transcript(query).encode('ascii')
+    encoded = b64.b64encode(resBytes)
     response = jsonify({
-        'reply': generate_response_from_transcript(query)
+        'reply': encoded.decode('ascii')
     })
     return response, 200
 
